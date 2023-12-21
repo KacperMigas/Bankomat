@@ -1,0 +1,164 @@
+<html lang="pl">
+<head>
+    <title>Projekt Javascript - Kacper M. </title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="bankomat.css">
+</head>
+<body>
+
+<form method ="post" style="border: 1px solid rgb(44, 238, 37);">
+    <p id="wp">Wprowadź swój PIN:<input type="text" name="PIN" id="PIN" />
+    <input type="submit" name="button1" value="Wykonaj" onclick="getPIN(); return false;" value="go"/></p>
+    <p id="welcomeMsg"></p>
+
+    <div id="display" style="display:none;">
+
+        <p id="saldo"></p>
+        <p id="pln10info"></p>
+        <p id="pln20info"></p>
+        <p id="pln50info"></p>
+        <p id="pln100info"></p>
+        <p id="pln200info"></p>
+        <p id="plntotalinfo"></p>
+        <label>Wprowadź kwotę wypłaty</label>
+        <input type="text" name="amount" id="amount" value=""/>
+        <input type="submit" name="button2" value="Wykonaj" onclick="performWithdraw(); return false;"/>
+    </div>
+
+</form>
+</body>
+<script type="text/javascript">
+
+    /* Stan konta i ilosc nominalow w bankomacie*/
+    let saldo = 21000; 
+    let pln10 = 10; 
+    let pln20 = 10; 
+    let pln50 = 10; 
+    let pln100 = 10; 
+    let pln200 = 100; 
+    let stanbankomatu = pln10 * 10 + pln20 * 20 + pln50 * 50 + pln100 * 100 + pln200 * 200; /* Ilosc pieniedzy w bankomacie*/
+
+    /* Sprawdzanie czy PIN jest prawidlowy */
+    function getPIN()
+    {
+
+        var p = document.getElementById('PIN').value;
+        var a = 1234;
+
+        
+        if(p==a)
+        {
+            document.getElementById("welcomeMsg").innerHTML = "Kod PIN prawidłowy";
+            document.getElementById('display').style.display = 'block';
+
+            document.getElementById("saldo").innerHTML = "Twoje saldo: "+saldo;
+            document.getElementById("pln10info").innerHTML = "Ilość dziesięciozłotówek w bankomacie: "+pln10;
+            document.getElementById("pln20info").innerHTML = "Ilość dwudziestozłotówek w bankomacie: "+pln20;
+            document.getElementById("pln50info").innerHTML = "Ilość pięćdziesięciozłotówek w bankomacie: "+pln50;
+            document.getElementById("pln100info").innerHTML = "Ilość stuzłotówek w bankomacie: "+pln100;
+            document.getElementById("pln200info").innerHTML = "Ilość dwustuzłotówek w bankomacie: "+pln200;
+            document.getElementById("plntotalinfo").innerHTML = "Całkowita kwota w bankomacie: "+stanbankomatu;
+        }
+        else
+        {
+            document.getElementById("welcomeMsg").innerHTML= "Kod PIN nieprawidłowy";
+        }
+    }
+
+    /* Funkcja sprawdza warunki wprowadzonej kwoty*/
+    function performWithdraw()
+    {
+        var amt = document.getElementById('amount').value;
+
+
+
+        if(isNaN(parseInt(amt))){
+            document.getElementById('display').innerHTML ="Wprowadziłeś tekst \"" +amt +"\" zamiast kwoty wypłaty!";
+            return;
+        }
+        else if(amt%10!=0){
+            document.getElementById('display').innerHTML ="Nieprawidłowa kwota wypłaty; wprowadź kwotę podzielną przez 10!";
+            return;
+        }
+        else if(amt>saldo){
+            document.getElementById('display').innerHTML ="Zbyt duża kwota wypłaty, Twoje konto nie posiada tylu pieniędzy!";
+            return;
+        }
+        else if (amt>stanbankomatu) {
+            document.getElementById('display').innerHTML = "Zbyt duża kwota wypłaty, bankomat nie posiada tylu pieniędzy!";
+            return;
+        }
+
+        else {
+            if (policzNominaly(amt, pln200, pln100, pln50, pln20, pln10) == -1)
+            document.getElementById('display').innerHTML = "Bankomat nie posiada wystarczającej ilości nominałów do wypłaty tej kwoty!";
+
+            let [amt10pln, amt20pln, amt50pln, amt100pln, amt200pln] = policzNominaly(amt, pln200, pln100, pln50, pln20, pln10);
+
+            document.getElementById('display').innerHTML = "Twoja kwota wypłaty to: " + amt + ". Wypłacono:" +
+                + amt200pln + " dwustuzłotówek, " +
+                + amt100pln + " stuzłotówek, " +
+                + amt50pln + " pięćdziesięciozłotówek, " +
+                + amt20pln + " dwudziestozłotówek, " +
+                + amt10pln + " dziesięciozłotówek.";
+        }
+    }
+
+    /* Funkcja ustala ile ma wyplacic pieniedzy danego nominalu */
+    function policzNominaly(kwotaWyplaty, bankomat200pln, bankomat100pln, bankomat50pln, bankomat20pln, bankomat10pln)
+    {
+        kwotaWyplaty = parseInt(kwotaWyplaty)
+
+        let ilosc200pln = Math.floor(kwotaWyplaty/200);
+        if (Math.floor(kwotaWyplaty/200) < bankomat200pln) {
+            kwotaWyplaty = kwotaWyplaty - ilosc200pln * 200;
+        }
+        else {
+            ilosc200pln = bankomat200pln;
+            kwotaWyplaty = kwotaWyplaty - bankomat200pln*200;
+        }
+
+        let ilosc100pln = Math.floor(kwotaWyplaty/100);
+        if (Math.floor(kwotaWyplaty/100) < bankomat100pln) {
+            kwotaWyplaty = kwotaWyplaty - ilosc100pln * 100;
+        }
+        else {
+            ilosc100pln = bankomat100pln;
+            kwotaWyplaty = kwotaWyplaty - bankomat100pln*100;
+        }
+
+        let ilosc50pln = Math.floor(kwotaWyplaty/50);
+        if (Math.floor(kwotaWyplaty/50) < bankomat50pln) {
+            kwotaWyplaty = kwotaWyplaty - ilosc50pln * 50;
+        }
+        else {
+            ilosc50pln = bankomat50pln;
+            kwotaWyplaty = kwotaWyplaty - bankomat50pln*50;
+        }
+
+        let ilosc20pln = Math.floor(kwotaWyplaty/20);
+        if (Math.floor(kwotaWyplaty/20) < bankomat20pln) {
+            kwotaWyplaty = kwotaWyplaty - ilosc20pln * 20;
+        }
+        else {
+            ilosc20pln = bankomat20pln;
+            kwotaWyplaty = kwotaWyplaty - bankomat20pln*20;
+        }
+
+        let ilosc10pln = Math.floor(kwotaWyplaty/10);
+        if (Math.floor(kwotaWyplaty/10) < bankomat10pln) {
+            kwotaWyplaty = kwotaWyplaty - ilosc10pln * 10;
+        }
+        else {
+            ilosc10pln = bankomat10pln;
+            kwotaWyplaty = kwotaWyplaty - bankomat10pln*10;
+        }
+
+        if (kwotaWyplaty > 0)
+            return -1;
+        else
+            return [ilosc10pln,ilosc20pln,ilosc50pln,ilosc100pln,ilosc200pln];
+    }
+
+</script>
+</html>
